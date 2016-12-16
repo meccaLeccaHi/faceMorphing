@@ -4,7 +4,7 @@
 These scripts make use of the following toolboxes intended for organizing, visualizing, and statistically exploring biomedical images:
 
 ## - Image registration:
-**Advanced Normalization Tools (ANTs)** http://picsl.upenn.edu/software/ants/ / http://stnava.github.io/ANTs/  
+**Advanced Normalization Tools (ANTs)** http://picsl.upenn.edu/software/ants/ **/** http://stnava.github.io/ANTs/  
 "ANTs computes high-dimensional mappings to capture the statistics of brain structure and function."
 ## - Statistical back-end (R interface):
 **ANTsR** http://stnava.github.io/ANTsR/  
