@@ -19,3 +19,5 @@ Creates face-morph stimulus space for each frame of what will later be an animat
 2. Create hybrids of those original faces, to serve as "new identity" faces
 3. Morph each new-identity face along the radial trajectory
 4. Morph each new-identity face along the tangential trajectory
+
+![Face-space example](https://cloud.githubusercontent.com/assets/15203083/21268802/d0cfbe2a-c375-11e6-8b99-2788bedb541b.png)
