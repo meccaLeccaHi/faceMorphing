@@ -19,6 +19,15 @@ Creates face-morph stimulus space for each frame of what will later be an animat
 1.  Creates average face for all faces provided  
 2. Create hybrids of those original faces, to serve as "new identity" faces  
 3. Morph each new-identity face along the radial trajectory  
-4. Morph each new-identity face along the tangential trajectory  
+4. Morph each new-identity face along the tangential trajectory 
+##
 
-![Face-space example](https://cloud.githubusercontent.com/assets/15203083/21268802/d0cfbe2a-c375-11e6-8b99-2788bedb541b.png)
+### Morphing animated faces 
+An example face-space generated via face-morphing with this tool. 
+
+![Face-space example](https://cloud.githubusercontent.com/assets/15203083/21275286/b24b5ede-c391-11e6-8ae9-a3a71f14ba87.gif)
+
+Original faces provided, graciously, by Supasorn Suwajanakorn (see links below)
+[[Web]](http://homes.cs.washington.edu/~supasorn/)  
+[[Faces]](https://www.youtube.com/watch?v=86wXbwvmnWM)  
+[[Paper]](http://grail.cs.washington.edu/projects/3DPersona/)  
