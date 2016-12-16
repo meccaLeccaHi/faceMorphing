@@ -10,10 +10,10 @@ These scripts make use of the following toolboxes:
 ## - R interface for ANTs:
 **ANTsR** http://stnava.github.io/ANTsR/
 
-#### - set_my_path.R
-- Defines appropriate directories, depending on whether running locally or on High Performance Computing cluster. 
+#### set_my_path.R
+Defines appropriate directories, depending on whether running locally or on High Performance Computing cluster. 
 
-#### - faceMorphBatch.R
+#### faceMorphBatch.R
 Creates face-morph stimulus space for each frame of what will later be an animated movie with voice sounds.
 1. Creates average face for all faces provided
 2. Create hybrids of those original faces, to serve as "new identity" faces
