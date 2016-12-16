@@ -23,7 +23,7 @@ Creates face-morph stimulus space for each frame of what will later be an animat
 ##
 
 ### Morphing animated faces 
-An example face-space generated via face-morphing with this tool. 
+An example animated face-space generated via face-morphing with this tool. 
 
 ![Face-space example](https://cloud.githubusercontent.com/assets/15203083/21275286/b24b5ede-c391-11e6-8ae9-a3a71f14ba87.gif)
 
