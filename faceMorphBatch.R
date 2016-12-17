@@ -1,9 +1,10 @@
 #!/usr/bin/env Rscript
-faceMorphBatch <- function(STARTFRAME, STOPFRAME) {
+faceMorphBatch <- function(STARTFRAME, STOPFRAME) 
+  {
   
   # last modified
   # apj
-  # 11/2/2016
+  # 12/16/2016
   #
   # 1. Create average face
   #
@@ -20,16 +21,21 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME) {
   #                "RRedsvd","shiny","signal","slidify","sna","squash","testthat","tools","visreg","wmtsa")
   # install.packages(all_pkgs,dependencies=TRUE)
   
-  shifter <- function(x, n = 1) {
+  # shift each element to the Nth index (neg=rightward,pos=leftward)
+  shifter <- function(x, n = 1) 
+    {
     if (n == 0) x else c(tail(x, -n), head(x, n))
   }
   
-  traj_dir_plot <- function() {
-    for (J in 1:2) {
+  traj_dir_plot <- function() 
+    {
+    for (J in 1:2) 
+      {
       BAR               <- unname(mapply(gsub,pattern=COLOR_CHANS,replacement=CHANNEL,x=FNAMES[J]))
       TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(FILELIST[J]))
       TEMP_FNAMES       <- paste(TEMP_DIR,"temp",BAR,sep="")
-      if (!all(file.exists(TEMP_FNAMES))) {        # step through color channels and save
+      if (!all(file.exists(TEMP_FNAMES))) 
+      { # step through color channels and save
         walk2(TEMP_IMG_LIST,TEMP_FNAMES,EBImage::writeImage,bits.per.sample=8L,compression="none")  
       }
     }
@@ -38,9 +44,10 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME) {
     FILELIST            <- paste(TEMP_DIR,"temp",TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FRAME_NUM_STR,sep="") # create file-list
     FILENAME_MAT        <- outer(FILELIST, paste(CHANNEL,IMAGE_EXT,',',sep=""),sep="",paste)
     
-    BAR                 <- file.path(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPHS$STEPS[M])
-    dir.create(BAR,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
-    FILENAME_OUT        <- paste(BAR,"/",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FNAME_STR,sep="")
+    # deine output directories and filenames
+    OUTPUT_DIR          <- file.path(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPHS$STEPS[M])
+    dir.create(OUTPUT_DIR,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
+    FILENAME_OUT        <- paste(OUTPUT_DIR,"/",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FNAME_STR,sep="")
     TEMP_FILE_OUT       <- paste(TEMP_DIR,"/temp",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FRAME_NUM_STR,CHANNEL,IMAGE_EXT,sep="")
     ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,
                    ITERATIONS=ITERATIONS_LIST$TRAJ,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
@@ -97,6 +104,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME) {
                                      oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
                                      oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
     
+    browser()
+    
+    
     # save RGB output image(s)
     IM_OUT              <- EBImage::flop(EBImage::transpose(TMP_IM/max(TMP_IM)))
     walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
@@ -143,7 +153,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME) {
   # declare vars
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # select function(s) to complete
   PARALLEL                  <- 0  # parallel processing logical
-  ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4)
+  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1)
   TRAJ_DIR_LIST             <- c("rad","tan")
   COLOR_CHANS               <- "RGB"
   CHAN_NAMES                <- c("Red", "Green", "Blue")
