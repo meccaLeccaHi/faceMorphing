@@ -31,7 +31,7 @@ An example animated face-space generated via face-morphing with this tool.
 Original faces provided, graciously, by Supasorn Suwajanakorn 
 [[Web]](http://homes.cs.washington.edu/~supasorn/) 
 [[Faces]](https://www.youtube.com/watch?v=86wXbwvmnWM) 
-[[Paper]](http://grail.cs.washington.edu/projects/3DPersona/) 
+[[Paper]](http://grail.cs.washington.edu/projects/3DPersona/)  
 
 **Created by Dr Adam Jones  
 Department of Neurosurgery,  
