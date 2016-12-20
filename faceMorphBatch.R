@@ -113,27 +113,22 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     # normalize each channel to one
     TEMP_IM      <- TEMP_IM/max(TEMP_IM)
     
-    # # correct orientation
-    # IM_OUT       <- EBImage::flop(EBImage::transpose(TEMP_IM))
+    # correct orientation
+    # if(dim(IM_OUT)[1]>dim(TEMP_IM)[2])
+    IM_OUT       <- EBImage::flop(EBImage::transpose(TEMP_IM))
     
     browser()
-    
-    # # rotate image, if necessary
-    # if(dim(TEMP_IM)[1]>dim(TEMP_IM)[2])
-    # {IM_OUT       <- image(EBImage::transpose(TEMP_IM))}
-    
-    TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
-    {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
-    
-    IM_OUT       <- TEMP_IM
+
     
     # save output to RGB image(s)
     walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
     
-    if(!missing(TEMP_OUTPUT_NAMES)) 
-    { # save temporary copy of image files for next loop iterations to use
-      TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
-      
+    # save temporary copy of image files for next loop iterations to use
+    TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
+    # TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)
+    
+    if(!missing(TEMP_OUTPUT_NAMES)) # if output names exist
+    { 
       # # rotate image, if necessary
       # TEMP_DIMS         <- dim(TEMP_IMG_LIST[[1]])
       # if(TEMP_DIMS[1]>TEMP_DIMS[2])
@@ -185,6 +180,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   MY_PATHS                  <- set_my_path() 
   
   ## DEFINE PROCESSING PARAMETERS
+  
+  
+   ############## STILL TRYING TO RESTORE traj FUNCTIONALITY
+  
+  
+  
+  
+  
+  
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # select function(s) to complete
   PARALLEL                  <- 0  # parallel processing logical
   ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1)
