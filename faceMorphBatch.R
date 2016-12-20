@@ -183,7 +183,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   
   
    ############## STILL TRYING TO RESTORE traj FUNCTIONALITY
-  
+  # left off playing with image orientation
   
   
   
