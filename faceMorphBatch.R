@@ -1,10 +1,8 @@
 #!/usr/bin/env Rscript
 faceMorphBatch <- function(STARTFRAME, STOPFRAME) 
-{
-  
-  # last modified
+{ # last modified
   # apj
-  # 12/16/2016
+  # 12/20/2016
   #
   # 1. Create average face
   #
@@ -30,7 +28,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   traj_dir_plot <- function() 
   {
     for (J in 1:2) 
-    {
+    { # split image into channels and write each to new image file
       BAR               <- unname(mapply(gsub,pattern=COLOR_CHANS,replacement=CHANNEL,x=FNAMES[J]))
       TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(FILELIST[J]))
       TEMP_FNAMES       <- paste(TEMP_DIR,"temp",BAR,sep="")
@@ -54,20 +52,23 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   }
   
   ants_transform <- function(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES) 
-  { # Usage:
+  { # reads character arrays listing files to be read/written by ANTs for morphing process
+    # Usage:
     # ants_transform(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
     
-    # create temporary workspace
+    # create temporary workspace, if it doesn't exist
     if (!exists("TEMP_DIR")) 
-    { TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-    dir.create(TEMP_DIR)
+    { 
+      TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+      dir.create(TEMP_DIR)
     }
     
+    # create temporary csv file containing filenames for ANTs function
     write.table(INPUT_FNAMES,paste(TEMP_DIR,ANTS_CSV_FNAME,sep=""),row.names=FALSE,col.names=FALSE,quote=FALSE) 
     
-    # load previous frame as template, if possible
+    # load previous frame as template, if it exists
     TEMPLATE_FNAME      <- gsub(FRAME_NUM_STR,sprintf("%03d",I-1),OUTPUT_FNAMES[1])
-    if (file.exists(TEMPLATE_FNAME)) 
+    if (FALSE) #(file.exists(TEMPLATE_FNAME)) 
     {
       # for shame...
       system(paste("matlab -nodisplay -nojvm -r 'addpath ", MY_PATHS$PROJ, "; colChanSplit ", TEMPLATE_FNAME, " ", TEMP_DIR, "; exit;'",sep=""))
@@ -89,7 +90,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       TEMPLATE_STR      <- ""
     }
     
-    # call bash script from shell
+    # call ANTs function from shell
     system(paste("export ANTSPATH=",MY_PATHS$ANTS,'\n', 
                  MY_PATHS$ANTS,"/antsMultivariateTemplateConstruction2.sh",
                  " -o ",TEMP_DIR,
@@ -101,24 +102,56 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
                  TEMPLATE_STR," ",
                  TEMP_DIR,ANTS_CSV_FNAME,sep=""))
     
-    TMP_IM      <- EBImage::rgbImage(oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep=""))*NORM_VALUE[1],
-                                     oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
-                                     oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
-    
     # save RGB output image(s)
-    IM_OUT              <- EBImage::flop(EBImage::transpose(TMP_IM/max(TMP_IM)))
-    walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
-    if(!missing(TEMP_OUTPUT_NAMES)) 
-    {
-      TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
-      TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)
-      walk2(TEMP_IMG_LIST,TEMP_OUTPUT_NAMES,writeTIFF,bits.per.sample=8L)  # step through color channels and save
-    }
+    
+    # TEMP_IM      <- EBImage::rgbImage(oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep=""))*NORM_VALUE[1],
+    #                                  oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
+    #                                  oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
+
+    #IM_OUT              <- EBImage::flop(EBImage::transpose(TEMP_IM/max(TEMP_IM)))
+    
+    # read nifti file output  adjust the level of each channel
+    TEMP_IM      <- EBImage::rgbImage(red=oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep="")),
+                                      green=oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep="")),
+                                      blue=oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep="")))
+    
+    # adjust the level of each channel
+    TEMP_IM      <- TEMP_IM*NORM_VALUE
+    
+    # normalize each channel to one
+    TEMP_IM      <- TEMP_IM/max(TEMP_IM)
+    
+    # # correct orientation
+    # IM_OUT       <- EBImage::flop(EBImage::transpose(TEMP_IM))
     
     browser()
     
+    # rotate image, if necessary
+    if(dim(TEMP_IM)[1]>dim(TEMP_IM)[2])
+    {IM_OUT       <- EBImage::transpose(TEMP_IM)}
+    # {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
+    
+    # save each channel to image file
+    walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
+    
+    if(!missing(TEMP_OUTPUT_NAMES)) 
+    { # save temporary copy of image files for next loop iterations to use
+      TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
+      
+      # # rotate image, if necessary
+      # TEMP_DIMS         <- dim(TEMP_IMG_LIST[[1]])
+      # if(TEMP_DIMS[1]>TEMP_DIMS[2])
+      # {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
+  
+      # step through color channels and save each to file
+      walk2(TEMP_IMG_LIST,TEMP_OUTPUT_NAMES,writeTIFF,bits.per.sample=8L)
+    }
     
     # EBImage::image(oro.nifti::readNIfTI('/tmp/tempDir49992/template2Piers_002B17WarpedToTemplate.nii.gz'))
+    
+    
+    browser()
+    
     
     # delete temporary workspace
     unlink(TEMP_DIR,force=TRUE)
@@ -126,25 +159,29 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   
   ####################################################################################################################
   
+  ## INSTALL PACKAGES
+  # check if CRAN packages are installed, if not then install 
   necc_pkgs   <- c("Rcpp","EBImage","purrr","magrittr","tiff")
   if (length(setdiff(necc_pkgs, rownames(installed.packages()))) > 0) 
   { 
     install.packages(setdiff(necc_pkgs, rownames(installed.packages())),dependencies=TRUE)  
   }
   
+  # check if git packages are installed, if not then install
   ants_pkgs   <- c("ITKR","ANTsR")
   if (length(setdiff(necc_pkgs, rownames(installed.packages()))) > 0) 
   { 
-    library(devtools)
+    library(devtools) # need devtools to install packages
     install_github("stnava/ITKR")
     install_github("stnava/ANTsR")
   }
   
-  # load packages
+  # load both sets of packages
   #pkgs <- c("ANTsR","devtools","stringi","grid","oro.nifti","devtools","raster","tiff","purrr","squash","EBImage")
   lapply(c(necc_pkgs,ants_pkgs),library,character.only=TRUE)
   
-  # define paths
+  ## DEFINE PATHS
+  # define path depending on local v. cluster
   if(Sys.info()[[4]]=="lab-All") 
   {
     source("~/Cloud2/movies/human/faces/face_scripts/set_my_path.R") # load custom function
@@ -155,7 +192,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   }
   MY_PATHS                  <- set_my_path() 
   
-  # declare vars
+  ## DEFINE PROCESSING PARAMETERS
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # select function(s) to complete
   PARALLEL                  <- 0  # parallel processing logical
   ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1)
@@ -165,6 +202,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   CHANNEL                   <- unlist(strsplit(COLOR_CHANS,""))
   NORM_VALUE                <- c(0.89,0.58,0.50) # relative brightness of R, G, & B chans
   ANTS_CSV_FNAME            <- "inputFiles.csv"
+  
+  # create list defining morph levels
   MORPHS                    <- list("LEVELS"            = seq(100,0,-25),
                                     "INPUT1"             = c(100,0,50),
                                     "INPUT2"             = c(0,50,100),
@@ -172,18 +211,14 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   MORPHS$STEPS              <- colMeans(rbind(MORPHS$INPUT1,MORPHS$INPUT2))
   MORPHS$STRS               <- sprintf("%03d",MORPHS$LEVELS)
   
-  # read image dimensions from example image for saving later on
-  # IM_DIMS                 <- capture.output(system(paste("tiffinfo ",MY_PATHS$INPUT,"/Hillary_001R.tiff",sep="")))
-  
-  # define face array for average face
+  # define faces to use for input to average face
   FACES                     <- c("Arnold","Barney","Daniel","Hillary","Ian","Piers","Shinzo","Tom")
   # HYBRID_SELECTION           <- ("Hillary-Shinzo" "Daniel-Hillary" "Ian-Tom"\
   # "Barney-Daniel" "Piers-Tom" "Daniel-Shinzo" "Arnold-Barney" "Ian-Piers")
   
-  # define face order around tangential morphs
-  FOO                       <- paste(MY_PATHS$TURK,"proj2/reordered_nameList.csv",sep="")
-  BAR                       <- read.csv(FOO,header=FALSE)
-  TANG_SELECTION            <- as.character(unlist(BAR[sprintf("V%d",seq_along(BAR))]))
+  # load file defining face order around face-space perimeter (tangential morphs axes), based on MDS analysis of turk responses
+  FACEORDER_FILE            <- paste(MY_PATHS$TURK,"proj2/reordered_nameList.csv",sep="")
+  TANG_SELECTION            <- unlist(lapply(read.csv(FACEORDER_FILE,header=FALSE), as.character))
   
   # frame loop
   for (I in STARTFRAME:STOPFRAME) 
@@ -232,57 +267,58 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     if (FUNCTION_TOGGLES$TRAJ)  
     { # face loop
       for (II in seq_along(TANG_SELECTION)) 
-      { TAN_NAME              <- TANG_SELECTION[II]
-      TANG_PARTNER          <- shifter(TANG_SELECTION,n=1)[II]
-      
-      ## create temporary image file directory
-      TEMP_DIR              <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-      dir.create(TEMP_DIR)
-      
-      ########################################################################################################################
-      ## create each morph trajectory (of 2) for each individual (of 8)
-      ########################################################################################################################
-      
-      # loop through morph steps
-      for (M in seq_along(MORPHS$STEPS)) 
-      { # define morph-levels
-        MORPH_IN_RAW        <- c(MORPHS$INPUT1[M],MORPHS$INPUT2[M])
-        MORPH_LEVL_IN       <- sprintf("%03d",MORPH_IN_RAW)
-        MORPH_LEVL_OUT      <- sprintf("%03d",round(mean(c(MORPHS$INPUT1[M],MORPHS$INPUT2[M]))))
+      { 
+        TAN_NAME              <- TANG_SELECTION[II]
+        TANG_PARTNER          <- shifter(TANG_SELECTION,n=1)[II]
         
-        # copy and convert (RGB>gray) input images in temp dir
-        TRAJ_DIR            <- TRAJ_DIR_LIST[1]
-        FILEPATHS           <- paste(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPH_IN_RAW,sep="/") # create file-list
+        ## create temporary image file directory
+        TEMP_DIR              <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+        dir.create(TEMP_DIR)
         
-        FNAMES              <- paste(TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
-        FILELIST            <- paste(FILEPATHS,FNAMES,sep="/")
-        if (any(grep("000",MORPH_LEVL_IN))) 
-        { 
-          AVEFILE           <- paste("Average_",FNAME_STR,sep="")
-          AVEFILEPATH       <- paste(MY_PATHS$FINAL,"Ave/",AVEFILE,sep="") # create file-list
-          FILELIST[grep("000",MORPH_LEVL_IN)]       <- AVEFILEPATH
-        }
-        traj_dir_plot()
+        ########################################################################################################################
+        ## create each morph trajectory (of 2) for each individual (of 8)
+        ########################################################################################################################
         
-        # copy and convert (RGB>gray) input images in temp dir
-        TRAJ_DIR            <- TRAJ_DIR_LIST[2]
-        FILEPATHS           <- paste(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPH_IN_RAW,sep="/") # create file-list
+        # loop through morph steps
+        for (M in seq_along(MORPHS$STEPS)) 
+        { # define morph-levels
+          MORPH_IN_RAW        <- c(MORPHS$INPUT1[M],MORPHS$INPUT2[M])
+          MORPH_LEVL_IN       <- sprintf("%03d",MORPH_IN_RAW)
+          MORPH_LEVL_OUT      <- sprintf("%03d",round(mean(c(MORPHS$INPUT1[M],MORPHS$INPUT2[M]))))
+          
+          # copy and convert (RGB>gray) input images in temp dir
+          TRAJ_DIR            <- TRAJ_DIR_LIST[1]
+          FILEPATHS           <- paste(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPH_IN_RAW,sep="/") # create file-list
+          
+          FNAMES              <- paste(TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
+          FILELIST            <- paste(FILEPATHS,FNAMES,sep="/")
+          if (any(grep("000",MORPH_LEVL_IN))) 
+          { 
+            AVEFILE           <- paste("Average_",FNAME_STR,sep="")
+            AVEFILEPATH       <- paste(MY_PATHS$FINAL,"Ave/",AVEFILE,sep="") # create file-list
+            FILELIST[grep("000",MORPH_LEVL_IN)]       <- AVEFILEPATH
+          }
+          traj_dir_plot()
+          
+          # copy and convert (RGB>gray) input images in temp dir
+          TRAJ_DIR            <- TRAJ_DIR_LIST[2]
+          FILEPATHS           <- paste(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPH_IN_RAW,sep="/") # create file-list
+          
+          FNAMES              <- paste(TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
+          FILELIST            <- paste(FILEPATHS,FNAMES,sep="/")
+          if (any(grep("000",MORPH_LEVL_IN))) 
+          { 
+            AVEFILE           <- paste("Average_",FNAME_STR,sep="")
+            FILEPATH          <- paste(MY_PATHS$FINAL,TANG_PARTNER,TRAJ_DIR,"100",sep="/") # create file-list
+            FNAME             <- paste(TANG_PARTNER,"100",TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
+            FILELIST[grep("000",MORPH_LEVL_IN)]       <- paste(FILEPATH,FNAME,sep="/")
+          }
+          traj_dir_plot()
+          
+        } # end MORPHS
         
-        FNAMES              <- paste(TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
-        FILELIST            <- paste(FILEPATHS,FNAMES,sep="/")
-        if (any(grep("000",MORPH_LEVL_IN))) 
-        { 
-          AVEFILE           <- paste("Average_",FNAME_STR,sep="")
-          FILEPATH          <- paste(MY_PATHS$FINAL,TANG_PARTNER,TRAJ_DIR,"100",sep="/") # create file-list
-          FNAME             <- paste(TANG_PARTNER,"100",TRAJ_DIR,"_",FNAME_STR,sep="") # create file-list
-          FILELIST[grep("000",MORPH_LEVL_IN)]       <- paste(FILEPATH,FNAME,sep="/")
-        }
-        traj_dir_plot()
+        unlink(TEMP_DIR,recursive=TRUE,force=TRUE)
         
-      } # end MORPHS
-      
-      unlink(TEMP_DIR,recursive=TRUE,force=TRUE)
-      
       } # end FUNCTION_TOGGLES
       
     } # end face loop
