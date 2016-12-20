@@ -26,8 +26,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   }
   
   traj_dir_plot <- function() 
-  {
-    for (J in 1:2) 
+  { # function to copy and convert (RGB>gray) input images in temp dir
+    
+    for (J in 1:2) # loop through filenames in list
     { # split image into channels and write each to new image file
       BAR               <- unname(mapply(gsub,pattern=COLOR_CHANS,replacement=CHANNEL,x=FNAMES[J]))
       TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(FILELIST[J]))
@@ -52,7 +53,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   }
   
   ants_transform <- function(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES) 
-  { # reads character arrays listing files to be read/written by ANTs for morphing process
+  { # function to read character arrays listing files to be read/written by ANTs for morphing process
     # Usage:
     # ants_transform(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
     
@@ -102,22 +103,13 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
                  TEMPLATE_STR," ",
                  TEMP_DIR,ANTS_CSV_FNAME,sep=""))
     
-    # save RGB output image(s)
-    
-    # TEMP_IM      <- EBImage::rgbImage(oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep=""))*NORM_VALUE[1],
-    #                                  oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
-    #                                  oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
+    # read nifti file output, and adjust the level of each input channel
+    TEMP_IM      <- EBImage::rgbImage(oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep=""))*NORM_VALUE[1],
+                                    oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
+                                     oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
 
-    #IM_OUT              <- EBImage::flop(EBImage::transpose(TEMP_IM/max(TEMP_IM)))
-    
-    # read nifti file output  adjust the level of each channel
-    TEMP_IM      <- EBImage::rgbImage(red=oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep="")),
-                                      green=oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep="")),
-                                      blue=oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep="")))
-    
-    # adjust the level of each channel
-    TEMP_IM      <- TEMP_IM*NORM_VALUE
-    
+    # IM_OUT        <- EBImage::flop(EBImage::transpose(TEMP_IM/max(TEMP_IM)))
+
     # normalize each channel to one
     TEMP_IM      <- TEMP_IM/max(TEMP_IM)
     
@@ -126,12 +118,16 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     
     browser()
     
-    # rotate image, if necessary
-    if(dim(TEMP_IM)[1]>dim(TEMP_IM)[2])
-    {IM_OUT       <- EBImage::transpose(TEMP_IM)}
-    # {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
+    # # rotate image, if necessary
+    # if(dim(TEMP_IM)[1]>dim(TEMP_IM)[2])
+    # {IM_OUT       <- image(EBImage::transpose(TEMP_IM))}
     
-    # save each channel to image file
+    TEMP_IMG_LIST     <- EBImage::getFrames(IM_OUT)
+    {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
+    
+    IM_OUT       <- TEMP_IM
+    
+    # save output to RGB image(s)
     walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
     
     if(!missing(TEMP_OUTPUT_NAMES)) 
@@ -148,11 +144,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     }
     
     # EBImage::image(oro.nifti::readNIfTI('/tmp/tempDir49992/template2Piers_002B17WarpedToTemplate.nii.gz'))
-    
-    
-    browser()
-    
-    
+
     # delete temporary workspace
     unlink(TEMP_DIR,force=TRUE)
   }
@@ -235,7 +227,11 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       INPUT_FNAMES          <- paste(MY_PATHS$INPUT,"/",FACES,"_",FRAME_NUM_STR,sep="") # create file-list
       FILENAME_MAT          <- outer(INPUT_FNAMES, paste(CHANNEL,IMAGE_EXT,',',sep=""),sep="",paste)
       FILENAME_OUT          <- paste(MY_PATHS$FINAL,"Ave/","Average_",FNAME_STR,sep="")
-      dir.create(paste(MY_PATHS$FINAL,"Ave",sep="/"),showWarnings=FALSE)  # create output directory, if none exists
+      
+      # create output directory, if none exists
+      dir.create(paste(MY_PATHS$FINAL,"Ave",sep="/"),showWarnings=FALSE)  
+      
+      # perform morphing process
       ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$AVE)
     }
     
@@ -256,12 +252,14 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
         BAR                 <- file.path(MY_PATHS$FINAL,FOO,TRAJ_DIR_LIST,MORPHS$STRS[1])
         walk(BAR,dir.create,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
         FILENAME_OUT        <- paste(BAR,"/",FOO,MORPHS$STRS[1],TRAJ_DIR_LIST,"_",FNAME_STR,sep="")
+        
+        # perform morphing process
         ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$HYB)
       }
     }
     
     ########################################################################################################################
-    ## trajectory loop: HYBRID > RADIAL > TANGENTIAL
+    ## trajectory loop: RADIAL & TANGENTIAL
     ########################################################################################################################
     
     if (FUNCTION_TOGGLES$TRAJ)  
