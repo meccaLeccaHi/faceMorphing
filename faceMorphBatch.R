@@ -1,7 +1,7 @@
 faceMorphBatch <- function(STARTFRAME, STOPFRAME) 
 { # last modified
   # apj
-  # 12/20/2016
+  # 1/25/2017
   #
   # 1. Create average face
   #
@@ -25,7 +25,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   } else {
     source("~/R/shifter.R") # load custom function
   }
-
+  
   traj_dir_plot <- function()
   { # function to copy and convert (RGB>gray) input images in temp dir
     
@@ -106,11 +106,11 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     
     # read nifti file output, and adjust the level of each input channel
     TEMP_IM      <- EBImage::rgbImage(oro.nifti::readNIfTI(paste(TEMP_DIR,"template0.nii.gz",sep=""))*NORM_VALUE[1],
-                                    oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
-                                     oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
-
+                                      oro.nifti::readNIfTI(paste(TEMP_DIR,"template1.nii.gz",sep=""))*NORM_VALUE[2],
+                                      oro.nifti::readNIfTI(paste(TEMP_DIR,"template2.nii.gz",sep=""))*NORM_VALUE[3])
+    
     # IM_OUT        <- EBImage::flop(EBImage::transpose(TEMP_IM/max(TEMP_IM)))
-
+    
     # normalize each channel to one
     TEMP_IM      <- TEMP_IM/max(TEMP_IM)
     
@@ -130,13 +130,13 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       # TEMP_DIMS         <- dim(TEMP_IMG_LIST[[1]])
       # if(TEMP_DIMS[1]>TEMP_DIMS[2])
       # {TEMP_IMG_LIST     <- lapply(TEMP_IMG_LIST,EBImage::transpose)}
-  
+      
       # step through color channels and save each to file
       walk2(TEMP_IMG_LIST,TEMP_OUTPUT_NAMES,writeTIFF,bits.per.sample=8L)
     }
     
     # EBImage::image(oro.nifti::readNIfTI('/tmp/tempDir49992/template2Piers_002B17WarpedToTemplate.nii.gz'))
-
+    
     # delete temporary workspace
     unlink(TEMP_DIR,force=TRUE)
   }
@@ -318,4 +318,3 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   } # frame loop end
   
 } # end FUNCTION
-
