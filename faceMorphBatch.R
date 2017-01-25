@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript
 faceMorphBatch <- function(STARTFRAME, STOPFRAME) 
 { # last modified
   # apj
@@ -19,13 +18,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   #                "RRedsvd","shiny","signal","slidify","sna","squash","testthat","tools","visreg","wmtsa")
   # install.packages(all_pkgs,dependencies=TRUE)
   
-  # shift each element to the Nth index (neg=rightward,pos=leftward)
-  shifter <- function(x, n = 1) 
+  # local v. cluster
+  if(Sys.info()[[4]]=="lab-All") 
   {
-    if (n == 0) x else c(tail(x, -n), head(x, n))
+    source('~/Cloud2/movies/human/faces/face_scripts/shifter.R') # load custom function
+  } else {
+    source("~/R/shifter.R") # load custom function
   }
-  
-  traj_dir_plot <- function() 
+
+  traj_dir_plot <- function()
   { # function to copy and convert (RGB>gray) input images in temp dir
     
     for (J in 1:2) # loop through filenames in list
@@ -113,12 +114,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     # normalize each channel to one
     TEMP_IM      <- TEMP_IM/max(TEMP_IM)
     
-    # correct orientation
-    # if(dim(IM_OUT)[1]>dim(TEMP_IM)[2])
+    # change orientation for saving
     IM_OUT       <- EBImage::flop(EBImage::transpose(TEMP_IM))
-    
-    browser()
-
     
     # save output to RGB image(s)
     walk2(list(IM_OUT),OUTPUT_FNAMES,writeTIFF,bits.per.sample=8L) # ,reduce=TRUE
@@ -172,32 +169,25 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   if(Sys.info()[[4]]=="lab-All") 
   {
     source("~/Cloud2/movies/human/faces/face_scripts/set_my_path.R") # load custom function
+    source('~/Cloud2/movies/human/faces/face_scripts/shifter.R')
     IMAGE_EXT               <- ".tiff"
   } else {
     source("~/R/set_my_path.R") # load custom function
+    source("~/R/shifter.R")
     IMAGE_EXT               <- ".tiff" # ".png"
   }
   MY_PATHS                  <- set_my_path() 
   
   ## DEFINE PROCESSING PARAMETERS
-  
-  
-   ############## STILL TRYING TO RESTORE traj FUNCTIONALITY
-  # left off playing with image orientation
-  
-  
-  
-  
-  
-  FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # select function(s) to complete
-  PARALLEL                  <- 0  # parallel processing logical
-  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1)
-  TRAJ_DIR_LIST             <- c("rad","tan")
-  COLOR_CHANS               <- "RGB"
-  CHAN_NAMES                <- c("Red", "Green", "Blue")
-  CHANNEL                   <- unlist(strsplit(COLOR_CHANS,""))
-  NORM_VALUE                <- c(0.89,0.58,0.50) # relative brightness of R, G, & B chans
-  ANTS_CSV_FNAME            <- "inputFiles.csv"
+  FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
+  PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
+  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # iterations of the template construction
+  TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
+  COLOR_CHANS               <- "RGB" # color abbreviations
+  CHAN_NAMES                <- c("Red", "Green", "Blue") # color channel name strings
+  CHANNEL                   <- unlist(strsplit(COLOR_CHANS,"")) # list of color abbreviations
+  NORM_VALUE                <- c(0.89,0.58,0.50) # brightness of color channels (rel. to 1)
+  ANTS_CSV_FNAME            <- "inputFiles.csv" # file name string
   
   # create list defining morph levels
   MORPHS                    <- list("LEVELS"            = seq(100,0,-25),
