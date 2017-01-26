@@ -37,7 +37,7 @@ echo "#Set the name of the job. This will be the first part of the error/output 
 #$ -M ajones173@gmail.com
 
 #Actual job
-Rscript /Users/apjons/R/faceMorphingTool/faceMorphWrap.R $1 $2
+Rscript /Users/apjons/R/faceMorphingTool/faceMorphBatch.R $1 $2
 
 #Print the end date of the job before exiting
 echo Job finished at: `date`"  > batch_job$1-$2_${slots}sl.sh
