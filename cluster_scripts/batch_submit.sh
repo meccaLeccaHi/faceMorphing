@@ -39,8 +39,7 @@ do
 #$ -M ajones173@gmail.com
 
 #Actual job
-# chmod +x ./faceMorphBatch_edit.sh
-Rscript /Users/apjons/R/faceMorphWrap.R $i $i
+Rscript /Users/apjons/R/faceMorphingTool/faceMorphWrap.R $i $i
 
 #Print the end date of the job before exiting
 echo Job finished at: `date`"  > batch_job${i}_${slots}sl.sh
