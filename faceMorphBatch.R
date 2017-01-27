@@ -187,7 +187,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   MY_PATHS                  <- set_my_path() 
   
   ## DEFINE PROCESSING PARAMETERS
-  FUNCTION_TOGGLES          <- list("AVE"=FALSE,"HYB"=FALSE,"TRAJ"=TRUE) # list of components to complete
+  FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
   PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
   ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
   TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
