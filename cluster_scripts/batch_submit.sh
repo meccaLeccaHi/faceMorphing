@@ -29,6 +29,11 @@ do
 	#(Up to 16)
 	#$ -pe smp $slots
 
+	#Print information from the job into the output file
+	/bin/echo Running on host: \`hostname\`.
+	/bin/echo In directory: \`pwd\`
+	/bin/echo Starting on: \`date\`
+
 	#Send e-mail at beginning/end/suspension of job
 	#$ -m es
 
@@ -36,7 +41,10 @@ do
 	#$ -M ajones173@gmail.com
 
 	#Actual job
-	Rscript /Users/apjons/R/faceMorphingTool/faceMorphBatch.R $i $i"  > batch_job${i}_${slots}sl.sh
+	Rscript /Users/apjons/R/faceMorphingTool/faceMorphBatch.R $i $i
+
+	#Print the end date of the job before exiting
+	echo Job finished at: \`date\`"  > batch_job${i}_${slots}sl.sh
 
 	# make that shell script executable
 	chmod +x batch_job${i}_${slots}sl.sh
