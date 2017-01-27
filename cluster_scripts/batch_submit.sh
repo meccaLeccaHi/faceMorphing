@@ -30,7 +30,7 @@ do
 	#$ -pe smp $slots
 
 	#Print information from the job into the output file
-	/bin/echo Running on host: \`hostname\`.
+	/bin/echo Running on host: \`hostname\`
 	/bin/echo In directory: \`pwd\`
 	/bin/echo Starting on: \`date\`
 
