@@ -3,7 +3,7 @@
 # batch_submit(begin_frame,end_frame)
 
 slots=1;
-queue="UI.q";; # all.q
+queue="UI.q" # all.q
 
 # loop for each frame from begin_frame to end_frame
 for i in $(eval echo {$1..$2}); 
