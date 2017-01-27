@@ -3,6 +3,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   # apj
   # 1/25/2017
   #
+  # [ works with R/3.2.1 ]
+  #
   # 1. Create average face
   #
   # 2. Create hybrids of original faces, to serve as full-identity faces
@@ -78,6 +80,12 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       # TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(TEMPLATE_FNAME))
       TEMP_FNAMES       <- paste(TEMP_DIR,sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,sep="")
       # walk2(TEMP_IMG_LIST,TEMP_FNAMES,EBImage::writeImage,quality=10,bits.per.sample=8L,compression="none") 
+      
+      # # load and execute python function to write image for each RGB channel of image
+      # paste("python -c " 'import os;
+      # os.chdir("/home/lab/Cloud2/movies/human/faces/face_scripts/");
+      # from split_im import split_im;
+      # split_im("/home/lab/Desktop/Average_002RGB.tiff","/home/lab/Desktop")""
       
       # TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(TEMPLATE_FNAME))
       # TEMP_FNAMES       <- paste(TEMP_DIR,sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,sep="")
@@ -179,9 +187,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   MY_PATHS                  <- set_my_path() 
   
   ## DEFINE PROCESSING PARAMETERS
-  FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
+  FUNCTION_TOGGLES          <- list("AVE"=FALSE,"HYB"=FALSE,"TRAJ"=TRUE) # list of components to complete
   PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
-  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # iterations of the template construction
+  ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
   TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
   COLOR_CHANS               <- "RGB" # color abbreviations
   CHAN_NAMES                <- c("Red", "Green", "Blue") # color channel name strings
@@ -205,9 +213,10 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   # load file defining face order around face-space perimeter (tangential morphs axes), based on MDS analysis of turk responses
   FACEORDER_FILE            <- paste(MY_PATHS$TURK,"proj2/reordered_nameList.csv",sep="")
   TANG_SELECTION            <- unlist(lapply(read.csv(FACEORDER_FILE,header=FALSE), as.character))
+  TANG_SELECTION            <- TANG_SELECTION[seq(1,8,2)]
   
   # frame loop
-  for (I in STARTFRAME:STOPFRAME) 
+  for (I in STARTFRAME:STOPFRAME)
   { # define current frame
     FRAME_NUM_STR           <- sprintf("%03d",I)
     FNAME_STR               <- paste(FRAME_NUM_STR,COLOR_CHANS,IMAGE_EXT,sep="")
