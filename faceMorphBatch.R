@@ -25,7 +25,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   {
     source('~/Cloud2/movies/human/faces/face_scripts/shifter.R') # load custom function
   } else {
-    source("~/R/shifter.R") # load custom function
+    source("~/R/faceMorphingTool/shifter.R") # load custom function
   }
   
   traj_dir_plot <- function()
@@ -180,8 +180,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     source('~/Cloud2/movies/human/faces/face_scripts/shifter.R')
     IMAGE_EXT               <- ".tiff"
   } else {
-    source("~/R/set_my_path.R") # load custom function
-    source("~/R/shifter.R")
+    source("~/R/faceMorphingTool/set_my_path.R") # load custom function
+    source("~/R/faceMorphingTool/shifter.R")
     IMAGE_EXT               <- ".tiff" # ".png"
   }
   MY_PATHS                  <- set_my_path() 
