@@ -46,11 +46,12 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     FILELIST            <- paste(TEMP_DIR,"temp",TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FRAME_NUM_STR,sep="") # create file-list
     FILENAME_MAT        <- outer(FILELIST, paste(CHANNEL,IMAGE_EXT,',',sep=""),sep="",paste)
     
-    # deine output directories and filenames
+    # define output directories and filenames
     OUTPUT_DIR          <- file.path(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPHS$STEPS[M])
     dir.create(OUTPUT_DIR,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
     FILENAME_OUT        <- paste(OUTPUT_DIR,"/",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FNAME_STR,sep="")
     TEMP_FILE_OUT       <- paste(TEMP_DIR,"/temp",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FRAME_NUM_STR,CHANNEL,IMAGE_EXT,sep="")
+    
     ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,
                    ITERATIONS=ITERATIONS_LIST$TRAJ,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
   }
@@ -59,11 +60,17 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   { # function to read character arrays listing files to be read/written by ANTs for morphing process
     # Usage:
     # ants_transform(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
-    
-    # create temporary workspace, if it doesn't exist
+ 
+    # create variable for path of temporary workspace, if it doesn't exist
     if (!exists("TEMP_DIR")) 
     { 
       TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+      dir.create(TEMP_DIR)
+    }
+    
+    # create temporary workspace directory, if it doesn't exist
+    if (!dir.exists(TEMP_DIR)) 
+    { 
       dir.create(TEMP_DIR)
     }
     
@@ -74,6 +81,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     TEMPLATE_FNAME      <- gsub(FRAME_NUM_STR,sprintf("%03d",I-1),OUTPUT_FNAMES[1])
     if (FALSE) #(file.exists(TEMPLATE_FNAME)) 
     {
+      browser()
+      
       # for shame...
       system(paste("matlab -nodisplay -nojvm -r 'addpath ", MY_PATHS$PROJ, "; colChanSplit ", TEMPLATE_FNAME, " ", TEMP_DIR, "; exit;'",sep=""))
       
@@ -188,8 +197,10 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   
   ## DEFINE PROCESSING PARAMETERS
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
+  # FUNCTION_TOGGLES          <- list("AVE"=FALSE,"HYB"=FALSE,"TRAJ"=TRUE) # for debugging
   PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
-  ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
+  # ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
+  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # for debugging
   TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
   COLOR_CHANS               <- "RGB" # color abbreviations
   CHAN_NAMES                <- c("Red", "Green", "Blue") # color channel name strings
