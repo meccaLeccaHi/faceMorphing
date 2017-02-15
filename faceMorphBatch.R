@@ -79,31 +79,22 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     
     # load previous frame as template, if it exists
     TEMPLATE_FNAME      <- gsub(FRAME_NUM_STR,sprintf("%03d",I-1),OUTPUT_FNAMES[1])
-    if (FALSE) #(file.exists(TEMPLATE_FNAME)) 
+    if (file.exists(TEMPLATE_FNAME)) 
     {
-      browser()
+      TEMP_FNAMES       <- paste('"',sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,'"',sep="")
+      SCRIPT_DIR = '"/home/lab/Cloud2/movies/human/faces/face_scripts/"'
       
-      # for shame...
-      system(paste("matlab -nodisplay -nojvm -r 'addpath ", MY_PATHS$PROJ, "; colChanSplit ", TEMPLATE_FNAME, " ", TEMP_DIR, "; exit;'",sep=""))
+      # write python file with commands to write image for each channel of RGB image
+      py_path_temp = paste(TEMP_DIR,"im_split_temp.py", sep='')
+      sink(py_path_temp)
+      cat(paste('from split_im import split_im\n'))
+      cat(paste('split_im("',TEMPLATE_FNAME,'","',TEMP_DIR,'",',
+            paste(TEMP_FNAMES,collapse=","),')\n',sep=""))
+      sink()
       
-      # TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(TEMPLATE_FNAME))
-      TEMP_FNAMES       <- paste(TEMP_DIR,sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,sep="")
-      # walk2(TEMP_IMG_LIST,TEMP_FNAMES,EBImage::writeImage,quality=10,bits.per.sample=8L,compression="none") 
+      # call that file from shell
+      system(paste("python \"",py_path_temp,'\"', sep = ""))
       
-      # # load and execute python function to write image for each RGB channel of image
-      # paste("python -c " 'import os;
-      # os.chdir("/home/lab/Cloud2/movies/human/faces/face_scripts/");
-      # from split_im import split_im;
-      # split_im("/home/lab/Desktop/Average_002RGB.tiff","/home/lab/Desktop")""
-      
-      # TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(TEMPLATE_FNAME))
-      # TEMP_FNAMES       <- paste(TEMP_DIR,sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,sep="")
-      # walk2(TEMP_IMG_LIST,TEMP_FNAMES,writeTIFF,bits.per.sample=8L,compression="none")  # step through color channels and save
-      
-      # lapply(paste("convert ",TEMPLATE_FNAME,
-      #                        " -channel ",shifter(CHAN_NAMES,n=1)," -channel ",shifter(CHAN_NAMES,n=2),
-      #                        " -evaluate set 0 +channel ",
-      #                        TEMP_DIR,sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,sep=""),system) #  -type Grayscale
       TEMPLATE_STR      <- paste("-z",TEMP_FNAMES,collapse=" ") # char array listing template images
     } else {
       TEMPLATE_STR      <- ""
