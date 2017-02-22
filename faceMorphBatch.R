@@ -61,28 +61,29 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     # Usage:
     # ants_transform(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
  
-    # create variable for path of temporary workspace, if it doesn't exist
-    if (!exists("TEMP_DIR")) 
-    { 
-      TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-      dir.create(TEMP_DIR)
-    }
+    # # create variable for path of temporary workspace, if it doesn't exist
+    # if (!exists("TEMP_DIR")) 
+    # { 
+    #   TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+    #   dir.create(TEMP_DIR)
+    # }
     
-    # create temporary workspace directory, if it doesn't exist
-    if (!dir.exists(TEMP_DIR)) 
-    { 
-      dir.create(TEMP_DIR)
-    }
+    # # create temporary workspace directory, if it doesn't exist
+    # if (!dir.exists(TEMP_DIR)) 
+    # { 
+    #   dir.create(TEMP_DIR)
+    # }
     
     # create temporary csv file containing filenames for ANTs function
     write.table(INPUT_FNAMES,paste(TEMP_DIR,ANTS_CSV_FNAME,sep=""),row.names=FALSE,col.names=FALSE,quote=FALSE) 
     
     # load previous frame as template, if it exists
     TEMPLATE_FNAME      <- gsub(FRAME_NUM_STR,sprintf("%03d",I-1),OUTPUT_FNAMES[1])
-    if (file.exists(TEMPLATE_FNAME)) 
+
+    if (file.exists(TEMPLATE_FNAME))
     {
       TEMP_FNAMES       <- paste('"',sprintf("temp%03d",I-1),CHANNEL,IMAGE_EXT,'"',sep="")
-      SCRIPT_DIR = '"/home/lab/Cloud2/movies/human/faces/face_scripts/"'
+      SCRIPT_DIR        <- '"/home/lab/Cloud2/movies/human/faces/face_scripts/"'
       
       # write python file with commands to write image for each channel of RGB image
       py_path_temp = paste(TEMP_DIR,"im_split_temp.py", sep='')
@@ -100,6 +101,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       TEMPLATE_STR      <- ""
     }
     
+    # if (file.exists(TEMPLATE_FNAME)){browser()}
+    
     # call ANTs function from shell
     system(paste("export ANTSPATH=",MY_PATHS$ANTS,'\n', 
                  MY_PATHS$ANTS,"/antsMultivariateTemplateConstruction2.sh",
@@ -108,7 +111,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
                  " -c ",PARALLEL,
                  " -k ",length(CHANNEL),
                  " -d 2 -r 1 -g 0.25 -f 16x12x8x4x2x1 -s 4x4x4x2x1x0 -q 100x100x100x70x50x10",
-                 " -n 1 -m CC -t BSplineSyN[0.1,75,0] ",
+                 " -n 0 -m CC -t BSplineSyN[0.1,75,0] ",
                  TEMPLATE_STR," ",
                  TEMP_DIR,ANTS_CSV_FNAME,sep=""))
     
@@ -145,8 +148,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     
     # EBImage::image(oro.nifti::readNIfTI('/tmp/tempDir49992/template2Piers_002B17WarpedToTemplate.nii.gz'))
     
-    # delete temporary workspace
-    unlink(TEMP_DIR,force=TRUE)
+    # # delete temporary workspace
+    # system(paste("rm -rf",TEMP_DIR))
+    # # unlink(TEMP_DIR,force=TRUE)
   }
   
   ####################################################################################################################
@@ -190,8 +194,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
   # FUNCTION_TOGGLES          <- list("AVE"=FALSE,"HYB"=FALSE,"TRAJ"=TRUE) # for debugging
   PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
-  # ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
-  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # for debugging
+  ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
+  # ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # for debugging
   TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
   COLOR_CHANS               <- "RGB" # color abbreviations
   CHAN_NAMES                <- c("Red", "Green", "Blue") # color channel name strings
@@ -236,8 +240,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       # create output directory, if none exists
       dir.create(paste(MY_PATHS$FINAL,"Ave",sep="/"),showWarnings=FALSE)  
       
+      # create variable for path of temporary workspace
+      TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+      dir.create(TEMP_DIR)
+      
       # perform morphing process
       ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$AVE)
+      
+      # delete temporary workspace
+      system(paste("rm -rf",TEMP_DIR))
     }
     
     ########################################################################################################################
@@ -258,8 +269,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
         walk(BAR,dir.create,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
         FILENAME_OUT        <- paste(BAR,"/",FOO,MORPHS$STRS[1],TRAJ_DIR_LIST,"_",FNAME_STR,sep="")
         
+        # create variable for path of temporary workspace
+        TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+        dir.create(TEMP_DIR)
+        
         # perform morphing process
         ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$HYB)
+        
+        # delete temporary workspace
+        system(paste("rm -rf",TEMP_DIR))
       }
     }
     
@@ -273,6 +291,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       { 
         TAN_NAME              <- TANG_SELECTION[II]
         TANG_PARTNER          <- shifter(TANG_SELECTION,n=1)[II]
+        
+        
+        # browser()  # NOW SEE HOW THIS LOOP IS USING ITS 'TEMP_DIR'
         
         ## create temporary image file directory
         TEMP_DIR              <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
@@ -320,7 +341,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
           
         } # end MORPHS
         
-        unlink(TEMP_DIR,recursive=TRUE,force=TRUE)
+        system(paste("rm -rf",TEMP_DIR))
+        # unlink(TEMP_DIR,recursive=TRUE,force=TRUE)
         
       } # end FUNCTION_TOGGLES
       
