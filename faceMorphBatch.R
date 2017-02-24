@@ -31,11 +31,13 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   traj_dir_plot <- function()
   { # function to copy and convert (RGB>gray) input images in temp dir
     
+    # browser()
+    
     for (J in 1:2) # loop through filenames in list
     { # split image into channels and write each to new image file
       BAR               <- unname(mapply(gsub,pattern=COLOR_CHANS,replacement=CHANNEL,x=FNAMES[J]))
       TEMP_IMG_LIST     <- EBImage::getFrames(EBImage::readImage(FILELIST[J]))
-      TEMP_FNAMES       <- paste(TEMP_DIR,"temp",BAR,sep="")
+      TEMP_FNAMES       <- paste(TEMP_IMG_DIR,"temp",BAR,sep="")
       if (!all(file.exists(TEMP_FNAMES))) 
       { # step through color channels and save
         walk2(TEMP_IMG_LIST,TEMP_FNAMES,EBImage::writeImage,bits.per.sample=8L,compression="none")  
@@ -43,14 +45,14 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     }
     
     # create char array for input .csv
-    FILELIST            <- paste(TEMP_DIR,"temp",TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FRAME_NUM_STR,sep="") # create file-list
+    FILELIST            <- paste(TEMP_IMG_DIR,"temp",TAN_NAME,MORPH_LEVL_IN,TRAJ_DIR,"_",FRAME_NUM_STR,sep="") # create file-list
     FILENAME_MAT        <- outer(FILELIST, paste(CHANNEL,IMAGE_EXT,',',sep=""),sep="",paste)
     
     # define output directories and filenames
     OUTPUT_DIR          <- file.path(MY_PATHS$FINAL,TAN_NAME,TRAJ_DIR,MORPHS$STEPS[M])
     dir.create(OUTPUT_DIR,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
     FILENAME_OUT        <- paste(OUTPUT_DIR,"/",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FNAME_STR,sep="")
-    TEMP_FILE_OUT       <- paste(TEMP_DIR,"/temp",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FRAME_NUM_STR,CHANNEL,IMAGE_EXT,sep="")
+    TEMP_FILE_OUT       <- paste(TEMP_IMG_DIR,"/temp",TAN_NAME,MORPH_LEVL_OUT,TRAJ_DIR,"_",FRAME_NUM_STR,CHANNEL,IMAGE_EXT,sep="")
     
     ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,
                    ITERATIONS=ITERATIONS_LIST$TRAJ,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
@@ -61,19 +63,10 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     # Usage:
     # ants_transform(INPUT_FNAMES,OUTPUT_FNAMES,ITERATIONS,TEMP_OUTPUT_NAMES=TEMP_FILE_OUT)
  
-    # # create variable for path of temporary workspace, if it doesn't exist
-    # if (!exists("TEMP_DIR")) 
-    # { 
-    #   TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-    #   dir.create(TEMP_DIR)
-    # }
-    
-    # # create temporary workspace directory, if it doesn't exist
-    # if (!dir.exists(TEMP_DIR)) 
-    # { 
-    #   dir.create(TEMP_DIR)
-    # }
-    
+    # create temporary workspace
+    TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+    dir.create(TEMP_DIR)
+
     # create temporary csv file containing filenames for ANTs function
     write.table(INPUT_FNAMES,paste(TEMP_DIR,ANTS_CSV_FNAME,sep=""),row.names=FALSE,col.names=FALSE,quote=FALSE) 
     
@@ -97,6 +90,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       system(paste("python \"",py_path_temp,'\"', sep = ""))
       
       TEMPLATE_STR      <- paste("-z",TEMP_FNAMES,collapse=" ") # char array listing template images
+      
+      # browser()
     } else {
       TEMPLATE_STR      <- ""
     }
@@ -148,9 +143,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
     
     # EBImage::image(oro.nifti::readNIfTI('/tmp/tempDir49992/template2Piers_002B17WarpedToTemplate.nii.gz'))
     
-    # # delete temporary workspace
-    # system(paste("rm -rf",TEMP_DIR))
-    # # unlink(TEMP_DIR,force=TRUE)
+    # delete temporary workspace
+    system(paste("rm -rf",TEMP_DIR))
   }
   
   ####################################################################################################################
@@ -194,8 +188,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   FUNCTION_TOGGLES          <- list("AVE"=TRUE,"HYB"=TRUE,"TRAJ"=TRUE) # list of components to complete
   # FUNCTION_TOGGLES          <- list("AVE"=FALSE,"HYB"=FALSE,"TRAJ"=TRUE) # for debugging
   PARALLEL                  <- 0  # parallel processing toggle (0='no',1='yes')
-  ITERATIONS_LIST           <- list("AVE"=6,"HYB"=4,"TRAJ"=4) # iterations of the template construction
-  # ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # for debugging
+  # ITERATIONS_LIST           <- list("AVE"=4,"HYB"=2,"TRAJ"=2) # iterations of the template construction
+  ITERATIONS_LIST           <- list("AVE"=1,"HYB"=1,"TRAJ"=1) # for debugging
   TRAJ_DIR_LIST             <- c("rad","tan") # trajectory name strings
   COLOR_CHANS               <- "RGB" # color abbreviations
   CHAN_NAMES                <- c("Red", "Green", "Blue") # color channel name strings
@@ -220,6 +214,8 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
   FACEORDER_FILE            <- paste(MY_PATHS$TURK,"proj2/reordered_nameList.csv",sep="")
   TANG_SELECTION            <- unlist(lapply(read.csv(FACEORDER_FILE,header=FALSE), as.character))
   TANG_SELECTION            <- TANG_SELECTION[seq(1,8,2)]
+  # V1              V3              V5              V7 
+  # "HillaryShinzo"  "ArnoldBarney" "DanielHillary"      "PiersTom" 
   
   # frame loop
   for (I in STARTFRAME:STOPFRAME)
@@ -240,15 +236,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
       # create output directory, if none exists
       dir.create(paste(MY_PATHS$FINAL,"Ave",sep="/"),showWarnings=FALSE)  
       
-      # create variable for path of temporary workspace
-      TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-      dir.create(TEMP_DIR)
+      # # create variable for path of temporary workspace
+      # TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+      # dir.create(TEMP_DIR)
       
       # perform morphing process
       ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$AVE)
       
-      # delete temporary workspace
-      system(paste("rm -rf",TEMP_DIR))
+      # # delete temporary workspace
+      # system(paste("rm -rf",TEMP_DIR))
     }
     
     ########################################################################################################################
@@ -269,15 +265,15 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
         walk(BAR,dir.create,recursive=TRUE,showWarnings=FALSE)  # create output directory, if none exists
         FILENAME_OUT        <- paste(BAR,"/",FOO,MORPHS$STRS[1],TRAJ_DIR_LIST,"_",FNAME_STR,sep="")
         
-        # create variable for path of temporary workspace
-        TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-        dir.create(TEMP_DIR)
+        # # create variable for path of temporary workspace
+        # TEMP_DIR          <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
+        # dir.create(TEMP_DIR)
         
         # perform morphing process
         ants_transform(INPUT_FNAMES=FILENAME_MAT,OUTPUT_FNAMES=FILENAME_OUT,ITERATIONS=ITERATIONS_LIST$HYB)
         
-        # delete temporary workspace
-        system(paste("rm -rf",TEMP_DIR))
+        # # delete temporary workspace
+        # system(paste("rm -rf",TEMP_DIR))
       }
     }
     
@@ -292,12 +288,9 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
         TAN_NAME              <- TANG_SELECTION[II]
         TANG_PARTNER          <- shifter(TANG_SELECTION,n=1)[II]
         
-        
-        # browser()  # NOW SEE HOW THIS LOOP IS USING ITS 'TEMP_DIR'
-        
         ## create temporary image file directory
-        TEMP_DIR              <- paste(MY_PATHS$OUTPUT,"tempDir",sample(1:100000,1),'/',sep="")
-        dir.create(TEMP_DIR)
+        TEMP_IMG_DIR              <- paste(MY_PATHS$OUTPUT,"tempImgDir",sample(1:100000,1),'/',sep="")
+        dir.create(TEMP_IMG_DIR)
         
         ########################################################################################################################
         ## create each morph trajectory (of 2) for each individual (of 8)
@@ -341,7 +334,7 @@ faceMorphBatch <- function(STARTFRAME, STOPFRAME)
           
         } # end MORPHS
         
-        system(paste("rm -rf",TEMP_DIR))
+        system(paste("rm -rf",TEMP_IMG_DIR))
         # unlink(TEMP_DIR,recursive=TRUE,force=TRUE)
         
       } # end FUNCTION_TOGGLES
