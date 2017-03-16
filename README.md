@@ -5,7 +5,7 @@ These scripts make use of the following toolboxes intended for organizing, visua
 
 ## - Image registration:
 **Advanced Normalization Tools (ANTs)** http://picsl.upenn.edu/software/ants/ **/** http://stnava.github.io/ANTs/  
-"ANTs computes high-dimensional mappings to capture the statistics of brain structure and function."
+Using C++ "ANTs computes high-dimensional mappings to capture the statistics of brain structure and function."
 ## - R interface:
 **ANTsR** http://stnava.github.io/ANTsR/  
 _[requires **ITKR** https://github.com/stnava/ITKR ]_  
