@@ -1,6 +1,6 @@
 # faceMorphingTool
 
-#### R scripts for morphing of images 
+#### R scripts for ***un-supervised*** morphing of images 
 These scripts make use of the following toolboxes intended for organizing, visualizing, and statistically exploring biomedical images:
 
 ## - Image registration:
