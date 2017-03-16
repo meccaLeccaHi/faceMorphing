@@ -1,12 +1,12 @@
 # faceMorphingTool
 
-####R scripts for non-linear morphing/warping of faces for neuroscience/psychophysics experiments. 
+#### R scripts for non-linear morphing/warping of faces for neuroscience/psychophysics experiments. 
 These scripts make use of the following toolboxes intended for organizing, visualizing, and statistically exploring biomedical images:
 
 ## - Image registration:
 **Advanced Normalization Tools (ANTs)** http://picsl.upenn.edu/software/ants/ **/** http://stnava.github.io/ANTs/  
 "ANTs computes high-dimensional mappings to capture the statistics of brain structure and function."
-## - Statistical back-end (R interface):
+## - R interface:
 **ANTsR** http://stnava.github.io/ANTsR/  
 _[requires **ITKR** https://github.com/stnava/ITKR ]_  
 "A package providing ANTs features in R as well as imaging-specific data representations, spatially regularized dimensionality reduction and segmentation tools."
