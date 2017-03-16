@@ -11,7 +11,6 @@ These scripts make use of the following toolboxes intended for organizing, visua
 _[requires **ITKR** https://github.com/stnava/ITKR ]_  
 "A package providing ANTs features in R as well as imaging-specific data representations, spatially regularized dimensionality reduction and segmentation tools."
 ##
-
 #### set_my_path.R
 Defines appropriate directories, depending on whether running locally or on High Performance Computing cluster. 
 
