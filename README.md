@@ -10,7 +10,11 @@ These scripts make use of the following toolboxes intended for organizing, visua
 **ANTsR** http://stnava.github.io/ANTsR/  
 _[requires **ITKR** https://github.com/stnava/ITKR ]_  
 "A package providing ANTs features in R as well as imaging-specific data representations, spatially regularized dimensionality reduction and segmentation tools."
-##
+
+### Morphing face images
+An example of an unsupervised face morph created with this tool. 
+
+![Face-morph example](http://i.imgur.com/4vh8XxK.png)
 #### set_my_path.R
 Defines appropriate directories, depending on whether running locally or on High Performance Computing cluster. 
 
@@ -21,11 +25,6 @@ Creates face-morph stimulus space for each frame of what will later be an animat
 3. Morph each new-identity face along the radial trajectory  
 4. Morph each new-identity face along the tangential trajectory 
 ##
-
-### Morphing animated faces 
-An example of an unsupervised face morph created with this tool. 
-
-![Face-morph example](http://i.imgur.com/4vh8XxK.png)
 
 Original faces provided, graciously, by Supasorn Suwajanakorn 
 [[Web]](http://homes.cs.washington.edu/~supasorn/) 
