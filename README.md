@@ -20,7 +20,7 @@ Defines appropriate directories, depending on whether running locally or on High
 
 #### faceMorphBatch.R
 Creates face-morph stimulus space for each frame of what will later be an animated movie with voice sounds.  
-1.  Creates average face for all faces provided  
+1. Creates average face for all faces provided  
 2. Create hybrids of those original faces, to serve as "new identity" faces  
 3. Morph each new-identity face along the radial trajectory  
 4. Morph each new-identity face along the tangential trajectory 
