@@ -1,7 +1,8 @@
-# faceMorphingTool
+# faceMorphing
 
 #### R scripts for un-supervised morphing of images 
-These scripts make use of the following toolboxes intended for organizing, visualizing, and statistically exploring biomedical images:
+These scripts make use of the following toolboxes intended for organizing, visualizing, and statistically exploring biomedical images.
+![Face-space example](https://cloud.githubusercontent.com/assets/15203083/21275286/b24b5ede-c391-11e6-8ae9-a3a71f14ba87.gif)
 
 ## - Image registration:
 **Advanced Normalization Tools (ANTs)** http://picsl.upenn.edu/software/ants/ **/** http://stnava.github.io/ANTs/  
